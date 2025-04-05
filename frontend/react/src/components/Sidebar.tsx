@@ -1,29 +1,41 @@
-// frontend/react/src/components/Sidebar.tsx
+// src/components/Sidebar.tsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  activePage?: string;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ activePage = 'dashboard' }) => {
   return (
     <div className="sidebar">
       <div className="logo-container">
-        <div className="house-icon"></div>
+        <Link to="/" className="logo">
+          <div className="house-icon"></div>
+        </Link>
       </div>
       
       <div className="sidebar-menu">
-        <a href="#" className="menu-item active">
+        <Link to="/" className={`menu-item ${activePage === 'dashboard' ? 'active' : ''}`}>
+          <div className="menu-icon property-icon"></div>
           <span>Property Analysis</span>
-        </a>
-        <a href="#" className="menu-item">
+        </Link>
+        <Link to="/properties" className={`menu-item ${activePage === 'properties' ? 'active' : ''}`}>
+          <div className="menu-icon dashboard-icon"></div>
           <span>Portfolio Dashboard</span>
-        </a>
-        <a href="#" className="menu-item">
+        </Link>
+        <Link to="/analytics" className={`menu-item ${activePage === 'analytics' ? 'active' : ''}`}>
+          <div className="menu-icon insights-icon"></div>
           <span>Market Insights</span>
-        </a>
-        <a href="#" className="menu-item">
+        </Link>
+        <Link to="/reports" className={`menu-item ${activePage === 'reports' ? 'active' : ''}`}>
+          <div className="menu-icon history-icon"></div>
           <span>Investment History</span>
-        </a>
-        <a href="#" className="menu-item">
+        </Link>
+        <Link to="/settings" className={`menu-item ${activePage === 'settings' ? 'active' : ''}`}>
+          <div className="menu-icon settings-icon"></div>
           <span>Settings</span>
-        </a>
+        </Link>
       </div>
       
       <div className="market-trends">
