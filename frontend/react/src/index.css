@@ -762,3 +762,75 @@ input, select {
   border-radius: 4px;
   cursor: pointer;
 }
+
+/* Analytics Page Styles */
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex-grow: 1;
+  margin-left: 250px; /* Adjust based on sidebar width */
+}
+
+.page-content {
+  padding: 20px;
+}
+
+.analytics-charts {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.chart-container {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+/* ===== Dashboard Layout Fixes ===== */
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+
+.sidebar {
+  position: fixed;
+  width: 250px;
+  height: 100vh;
+  z-index: 10;
+  background-color: var(--light-blue);
+  padding: 24px 16px;
+  box-sizing: border-box; /* Ensures padding doesn't affect total width */
+}
+
+.main-content {
+  flex-grow: 1;
+  margin-left: 250px;
+  background-color: var(--background);
+  min-height: 100vh;
+}
+
+.page-content {
+  padding: 24px;
+  position: relative;
+  z-index: 1; /* Ensures content appears above sidebar */
+}
+/* Navbar should stay above sidebar */
+.navbar {
+  position: relative;
+  z-index: 20;
+}
+/* Homepage-specific adjustments */
+.homepage .main-content {
+  padding-top: 60px; /* Compensate for navbar height */
+}
+
+/* Analytics page chart container fix */
+.analytics-charts {
+  margin-top: 32px;
+  gap: 24px;
+}

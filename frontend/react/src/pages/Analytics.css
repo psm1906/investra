@@ -1,0 +1,44 @@
+/* General Reset */
+* {
+    box-sizing: border-box;
+  }
+  
+  /* Page Content */
+  .page-content {
+    padding: 20px;
+  }
+  
+  /* Analytics Charts */
+  .analytics-charts {
+    display: grid;
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  
+  /* Chart Container */
+  .chart-container {
+    background-color: var(--card-bg); /* Use consistent background color */
+    padding: 20px;
+    border-radius: 8px; /* Rounded corners for better aesthetics */
+    box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for elevation */
+    text-align: center; /* Center-align content */
+  }
+  
+  .chart-container h3 {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 12px; /* Reduce spacing between heading and content */
+  }
+  
+  .chart-container p {
+    margin-top: 8px; /* Reduce spacing between image and description */
+    color: var(--text-medium);
+  }
+  
+  /* Placeholder Chart Styling */
+  .placeholder-chart {
+    height: 200px;
+    background-color: var(--light-beige);
+    border-radius: 4px;
+  }
+  
