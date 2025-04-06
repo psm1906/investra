@@ -5,14 +5,12 @@ import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Properties from './pages/Properties';
 import Reports from './pages/Reports';
-import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
 
 function App() {
   return (
     <div className="dashboard-container">
-      <Navbar />
       <Sidebar />
       
       <div className="main-content">

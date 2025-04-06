@@ -1,7 +1,9 @@
+/* Tailwind Base Imports */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* CSS Variables */
 :root {
   --primary-blue: #2c5985;
   --secondary-blue: #a8c7e5;
@@ -19,6 +21,7 @@
   --border: #e2e8f0;
 }
 
+/* Global Styles */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--background);
@@ -34,95 +37,88 @@ body {
   position: relative;
 }
 
+/* --- SIDEBAR (Full height + 250px wide) --- */
 .sidebar {
   position: fixed;
-  width: 250px;
-  height: calc(100vh - 60px); /* Account for navbar height */
-  top: 60px; /* Position below navbar */
+  top: 0;
   left: 0;
+  width: 250px;
+  height: 100vh; /* full viewport height */
   z-index: 10;
   background-color: var(--light-blue);
-  padding: 24px 16px;
+  padding: 16px; /* unified padding */
   box-sizing: border-box;
-  overflow-y: auto;
+  overflow-y: auto; /* scroll if needed */
+  display: flex;
+  flex-direction: column; /* stack items top to bottom */
 }
 
+.logo-container {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.logo-container img {
+  width: 250px;
+}
+
+/* --- MAIN CONTENT (Offset by 250px) --- */
 .main-content {
-  margin-left: 125px;
+  margin-top: -20px;
+  margin-left: 120px; /* matches sidebar width */
   padding: 24px;
-  min-height: calc(100vh - 60px);
   background-color: var(--background);
   flex: 1;
+  /* If your layout requires a top margin, adjust accordingly:
+     e.g., margin-top: 0; or margin-top: 24px; 
+     For now, we set none so it lines up with the sidebar top. */
 }
 
 .page-content {
   padding: 24px;
   position: relative;
-  z-index: 1; /* Ensures content appears above sidebar */
+  z-index: 1; /* Ensures content appears above sidebar if overlapping */
 }
 
-/* Navbar should stay above sidebar */
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  height: 60px;
-  background-color: var(--primary-blue);
-  color: white;
+/* Sidebar: SignIn/SignOut button styles */
+.menu-item.signin-button {
   display: flex;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-}
-
-/* Homepage-specific adjustments */
-.homepage .main-content {
-  padding-top: 60px; /* Compensate for navbar height */
-}
-
-.navbar-brand {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.navbar-menu {
-  display: flex;
-  gap: 24px;
-}
-
-.nav-item {
-  color: white;
+  padding: 12px 16px;
+  color: var(--text-dark);
   text-decoration: none;
-  font-weight: 500;
-  padding: 8px 12px;
-}
-
-.nav-item.active {
-  background-color: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
+  margin-bottom: 8px;
+  background-color: transparent;
+  border: 1px solid var(--primary-blue);
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+.menu-item.signin-button:hover {
+  background-color: var(--primary-blue);
+  color: #fff;
 }
 
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: var(--accent-beige);
+/* General menu items in the sidebar */
+.menu-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: var(--primary-blue);
-  font-weight: bold;
+  padding: 12px 16px;
+  color: var(--text-dark);
+  text-decoration: none;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.menu-item.active {
+  background-color: var(--primary-blue);
+  color: #fff;
+}
+.menu-item span {
+  margin-left: 12px;
 }
 
-/* Sidebar styles */
-.logo-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 32px;
-}
-
+/* Example custom house icon (if you need it) */
 .house-icon {
   width: 80px;
   height: 80px;
@@ -130,7 +126,6 @@ body {
   border-radius: 8px;
   position: relative;
 }
-
 .house-icon::before {
   content: '';
   position: absolute;
@@ -141,7 +136,6 @@ body {
   background-color: var(--primary-blue);
   clip-path: polygon(0 100%, 40% 0, 60% 0, 100% 100%);
 }
-
 .house-icon::after {
   content: '';
   position: absolute;
@@ -153,47 +147,23 @@ body {
   clip-path: polygon(0 0, 100% 0, 100% 70%, 60% 70%, 60% 100%, 40% 100%, 40% 70%, 0 70%);
 }
 
-.sidebar-menu {
-  margin-top: 32px;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  color: var(--text-dark);
-  text-decoration: none;
-  border-radius: 4px;
-  margin-bottom: 8px;
-}
-
-.menu-item.active {
-  background-color: var(--primary-blue);
-  color: white;
-}
-
-.menu-item span {
-  margin-left: 12px;
-}
-
+/* Market Trends widget on the sidebar */
 .market-trends {
-  margin-top: auto;
-  padding: 16px;
-  background-color: white;
+  margin-top: auto; /* pushes this section + footer to bottom if there’s space */
+  background-color: #fff;
   border-radius: 8px;
+  padding: 16px;
   margin-bottom: 16px;
 }
 
 .trend-item {
   margin-bottom: 16px;
 }
-
 .trend-label {
   font-size: 14px;
   margin-bottom: 8px;
   color: var(--text-medium);
 }
-
 .trend-chart {
   height: 40px;
   background-color: var(--light-beige);
@@ -202,6 +172,7 @@ body {
   position: relative;
 }
 
+/* Chart images (interest, prices, etc.) */
 .interest-chart::after {
   content: '';
   position: absolute;
@@ -209,10 +180,10 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40'%3E%3Cpath d='M0,30 L10,28 L20,32 L30,25 L40,27 L50,20 L60,15 L70,18 L80,10 L90,5 L100,8' stroke='%232c5985' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+  /* Data URI with a line chart stroke='%232c5985' */
+  background-image: url("data:image/svg+xml,%3Csvg ...stroke='%232c5985'%3E");
   background-size: 100% 100%;
 }
-
 .prices-chart::after {
   content: '';
   position: absolute;
@@ -220,72 +191,69 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40'%3E%3Cpath d='M0,25 L10,30 L20,28 L30,32 L40,25 L50,27 L60,20 L70,15 L80,18 L90,10 L100,5' stroke='%23d5b795' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+  /* Another Data URI with stroke='%23d5b795' */
+  background-image: url("data:image/svg+xml,%3Csvg ...stroke='%23d5b795'%3E");
   background-size: 100% 100%;
 }
 
-.sidebar-footer {
-  text-align: center;
-  font-size: 12px;
-  color: var(--text-light);
+/* Auth, Menu, and Footer spacing in the sidebar */
+.user-auth {
+  margin-bottom: 16px;
+}
+.sidebar-menu {
+  margin-bottom: 16px;
 }
 
-/* Property Analysis styles */
+/* ===== Property Analysis Page (example) ===== */
 .property-analysis-container {
   padding: 24px;
 }
-
 .property-analysis-container h2 {
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 8px;
 }
-
 .analysis-description {
   color: var(--text-medium);
   margin-bottom: 24px;
 }
-
 .analysis-content {
   display: flex;
   gap: 24px;
 }
 
+/* Property Card Example */
 .property-details-section {
   flex: 3;
-  background-color: white;
+  background-color: #fff;
   border-radius: 8px;
   padding: 24px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
-
 .section-header {
   display: flex;
   align-items: center;
   margin-bottom: 24px;
 }
-
 .section-header h3 {
   font-size: 18px;
   font-weight: 600;
   margin-left: 12px;
 }
 
+/* Form fields (location, price, etc.) */
 .form-group {
   margin-bottom: 16px;
 }
-
 .form-group label {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
   color: var(--text-medium);
 }
-
 .location-input {
   display: flex;
 }
-
 .location-input input {
   flex: 1;
   border: 1px solid var(--border);
@@ -293,10 +261,9 @@ body {
   padding: 8px 12px;
   font-size: 14px;
 }
-
 .location-btn {
   background-color: var(--primary-blue);
-  color: white;
+  color: #fff;
   border: none;
   width: 40px;
   border-radius: 0 4px 4px 0;
@@ -305,15 +272,15 @@ body {
   align-items: center;
   justify-content: center;
 }
-
 .map-icon {
   width: 20px;
   height: 20px;
-  background-color: white;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z'/%3E%3C/svg%3E");
+  background-color: #fff;
+  mask-image: url("data:image/svg+xml,%3Csvg ...%3E");
   mask-size: cover;
 }
 
+/* Property Image Section */
 .property-image-section {
   display: flex;
   align-items: center;
@@ -322,7 +289,6 @@ body {
   border-radius: 8px;
   padding: 16px;
 }
-
 .image-placeholder {
   width: 120px;
   height: 120px;
@@ -334,13 +300,11 @@ body {
   justify-content: center;
   position: relative;
 }
-
 .house-image {
   width: 80px;
   height: 80px;
   position: relative;
 }
-
 .house-image::before {
   content: '';
   position: absolute;
@@ -351,7 +315,6 @@ body {
   background-color: var(--primary-blue);
   clip-path: polygon(0 100%, 40% 0, 60% 0, 100% 100%);
 }
-
 .house-image::after {
   content: '';
   position: absolute;
@@ -362,80 +325,68 @@ body {
   background-color: var(--primary-blue);
   clip-path: polygon(0 0, 100% 0, 100% 70%, 60% 70%, 60% 100%, 40% 100%, 40% 70%, 0 70%);
 }
-
 .image-upload-info h4 {
   font-size: 16px;
   font-weight: 500;
   margin-bottom: 4px;
 }
-
 .image-upload-info p {
   font-size: 14px;
   color: var(--text-medium);
 }
-
 .form-row {
   display: flex;
   gap: 16px;
   margin-bottom: 16px;
 }
-
 .half {
   width: 50%;
 }
-
-input, select {
+input,
+select {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 8px 12px;
   font-size: 14px;
 }
-
 .price-input {
   position: relative;
 }
-
 .currency {
   position: absolute;
   left: 12px;
   top: 10px;
   color: var(--text-medium);
 }
-
 .price-input input {
   padding-left: 24px;
 }
-
 .beds-baths-inputs {
   display: flex;
   gap: 8px;
 }
-
 .rating-stars {
   display: flex;
   margin-top: 8px;
 }
-
 .star {
   width: 20px;
   height: 20px;
   margin-right: 4px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z' fill='%23d5b795'/%3E%3C/svg%3E");
+  /* Data URI star icon */
+  background-image: url("data:image/svg+xml,%3Csvg ...fill='%23d5b795'%3E");
   background-size: cover;
 }
-
 .star.empty {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z' fill='%23e2e8f0'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg ...fill='%23e2e8f0'%3E");
 }
-
 .form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 16px;
   margin-top: 24px;
 }
-
 .btn-secondary {
   background-color: var(--light-beige);
   color: var(--text-dark);
@@ -445,10 +396,9 @@ input, select {
   cursor: pointer;
   font-weight: 500;
 }
-
 .btn-primary {
   background-color: var(--primary-blue);
-  color: white;
+  color: #fff;
   border: none;
   padding: 10px 20px;
   border-radius: 4px;
@@ -456,41 +406,37 @@ input, select {
   font-weight: 500;
 }
 
+/* ===== Risk Analysis Section ===== */
 .risk-analysis-section {
   flex: 2;
   background-color: var(--primary-blue);
   border-radius: 8px;
   padding: 24px;
-  color: white;
+  color: #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   background-image: linear-gradient(to bottom right, var(--primary-blue), #1e3a5f);
 }
-
 .risk-analysis-section h3 {
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 24px;
   text-align: center;
 }
-
 .risk-meter {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-bottom: 24px;
 }
-
 .score-display {
   text-align: center;
   margin-bottom: 16px;
 }
-
 .score-number {
   font-size: 48px;
   font-weight: 700;
   color: var(--accent-beige);
 }
-
 .risk-level {
   font-weight: 600;
   padding: 4px 12px;
@@ -498,29 +444,26 @@ input, select {
   display: inline-block;
   margin-top: 8px;
 }
-
 .risk-level.low {
   background-color: var(--risk-low);
   color: #2f6e39;
 }
-
 .risk-level.medium {
   background-color: var(--risk-medium);
   color: #8a6d00;
 }
-
 .risk-level.high {
   background-color: var(--risk-high);
   color: #a02725;
 }
 
+/* Gauge Styles */
 .gauge {
   width: 200px;
   height: 100px;
   position: relative;
   margin-bottom: 16px;
 }
-
 .gauge-background {
   width: 200px;
   height: 100px;
@@ -529,42 +472,36 @@ input, select {
   overflow: hidden;
   position: relative;
 }
-
 .gauge-section {
   position: absolute;
   width: 66.67px;
   height: 100px;
   top: 0;
 }
-
 .gauge-section.low {
   left: 0;
   background-color: var(--risk-low);
 }
-
 .gauge-section.medium {
   left: 66.67px;
   background-color: var(--risk-medium);
 }
-
 .gauge-section.high {
   left: 133.33px;
   background-color: var(--risk-high);
 }
-
 .gauge-needle {
   position: absolute;
   width: 4px;
   height: 80px;
-  background-color: white;
+  background-color: #fff;
   bottom: 0;
   left: 98px;
   transform-origin: bottom center;
   transform: rotate(0deg);
   z-index: 2;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
 }
-
 .gauge-labels {
   display: flex;
   justify-content: space-between;
@@ -572,40 +509,34 @@ input, select {
   margin-top: 8px;
   font-size: 12px;
 }
-
 .low-label {
   color: var(--risk-low);
 }
-
 .medium-label {
   color: var(--risk-medium);
 }
-
 .high-label {
   color: var(--risk-high);
 }
 
+/* Risk Factors */
 .risk-factors {
   margin-bottom: 24px;
 }
-
 .risk-factors h4 {
   font-size: 16px;
   font-weight: 500;
   margin-bottom: 16px;
 }
-
 .risk-factor-item {
   display: flex;
   align-items: center;
   margin-bottom: 12px;
 }
-
 .factor-name {
   flex: 1;
   font-size: 14px;
 }
-
 .factor-bar-container {
   width: 100px;
   height: 8px;
@@ -614,24 +545,19 @@ input, select {
   overflow: hidden;
   margin: 0 8px;
 }
-
 .factor-bar {
   height: 100%;
   border-radius: 4px;
 }
-
 .factor-bar.low {
   background-color: var(--risk-low);
 }
-
 .factor-bar.medium {
   background-color: var(--risk-medium);
 }
-
 .factor-bar.high {
   background-color: var(--risk-high);
 }
-
 .factor-score {
   width: 40px;
   text-align: right;
@@ -639,12 +565,12 @@ input, select {
   font-size: 14px;
 }
 
+/* AI Recommendation */
 .ai-recommendation {
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 16px;
 }
-
 .ai-recommendation h4 {
   font-size: 16px;
   font-weight: 500;
@@ -652,7 +578,6 @@ input, select {
   display: flex;
   align-items: center;
 }
-
 .ai-recommendation h4::before {
   content: '';
   display: inline-block;
@@ -660,30 +585,35 @@ input, select {
   height: 20px;
   margin-right: 8px;
   background-color: var(--accent-beige);
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z'/%3E%3C/svg%3E");
+  /* data URI mask icon remains the same */
+  mask-image: url("data:image/svg+xml,%3Csvg ...%3E");
   mask-size: cover;
 }
-
 .ai-recommendation p {
   font-size: 14px;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* Additional styles for other pages */
+/* ===== Additional Pages ===== */
 .page-content {
   padding: 24px;
 }
 
-.analytics-charts, .properties-list, .reports-list {
+.analytics-charts,
+.properties-list,
+.reports-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
   margin-top: 24px;
 }
 
-.chart-container, .property-card, .report-item {
-  background-color: white;
+/* Card Layouts */
+.chart-container,
+.property-card,
+.report-item {
+  background-color: #fff;
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -695,6 +625,7 @@ input, select {
   border-radius: 4px;
 }
 
+/* Property Cards */
 .property-image {
   height: 160px;
   background-color: var(--light-beige);
@@ -710,22 +641,20 @@ input, select {
   font-weight: 500;
   margin-top: 8px;
 }
-
 .risk-badge.low {
   background-color: var(--risk-low);
   color: #2f6e39;
 }
-
 .risk-badge.medium {
   background-color: var(--risk-medium);
   color: #8a6d00;
 }
-
 .risk-badge.high {
   background-color: var(--risk-high);
   color: #a02725;
 }
 
+/* Add-Property Card */
 .add-property-card {
   background-color: var(--light-blue);
   border-radius: 8px;
@@ -737,12 +666,11 @@ input, select {
   cursor: pointer;
   height: 100%;
 }
-
 .add-icon {
   width: 48px;
   height: 48px;
   background-color: var(--primary-blue);
-  color: white;
+  color: #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -751,11 +679,11 @@ input, select {
   margin-bottom: 12px;
 }
 
+/* Reports */
 .report-item {
   display: flex;
   align-items: center;
 }
-
 .report-icon {
   width: 40px;
   height: 40px;
@@ -763,22 +691,21 @@ input, select {
   border-radius: 8px;
   margin-right: 16px;
 }
-
 .report-info {
   flex: 1;
 }
-
 .download-btn {
   background-color: var(--primary-blue);
-  color: white;
+  color: #fff;
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
 }
 
+/* Footer */
 .footer {
-  margin-left: 250px;
+  margin-left: 250px; /* offset to match the sidebar width */
   padding: 16px;
   text-align: center;
   color: var(--text-light);

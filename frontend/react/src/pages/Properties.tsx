@@ -1,13 +1,9 @@
 import React from 'react';
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
 
 const Properties: React.FC = () => {
   return (
     <div className="dashboard-container">
-      <Sidebar activePage="properties" />
       <div className="main-content">
-        <Navbar activePage="Properties" />
         <div className="page-content">
           <h2>Properties</h2>
           <p>Manage your property portfolio</p>

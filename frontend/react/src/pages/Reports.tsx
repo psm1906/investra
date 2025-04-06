@@ -1,13 +1,9 @@
 import React from 'react';
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
 
 const Reports: React.FC = () => {
   return (
     <div className="dashboard-container">
-      <Sidebar activePage="reports" />
       <div className="main-content">
-        <Navbar activePage="Reports" />
         <div className="page-content">
           <h2>Reports</h2>
           <p>View and download investment reports</p>

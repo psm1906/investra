@@ -1,16 +1,11 @@
 import React from 'react';
-import Navbar from '../components/Navbar'; // Header component
-import Sidebar from '../components/Sidebar'; // Sidebar component
 
 const Analytics: React.FC = () => {
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
-      <Sidebar activePage="analytics" />
 
       {/* Main Content */}
       <div className="main-content">
-        <Navbar activePage="Analytics" />
         <div className="page-content">
           <h2>Analytics</h2>
           <p>Gain insights into your investments and risk management strategies.</p>

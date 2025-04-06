@@ -1,57 +1,91 @@
 // src/components/Sidebar.tsx
+
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  SignInButton,
+  SignOutButton,
+} from '@clerk/clerk-react';
+import logo from '../assets/images/logo.png';
 
-interface SidebarProps {
-  activePage?: string;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ activePage = 'dashboard' }) => {
+const Sidebar: React.FC = () => {
   return (
     <div className="sidebar">
+      {/* Top Logo */}
       <div className="logo-container">
-        <Link to="/" className="logo">
-          <div className="house-icon"></div>
-        </Link>
+        <NavLink to="/" end>
+          <img src={logo} alt="Logo" />
+        </NavLink>
       </div>
       
+      {/* User Authentication Section */}
+      <div className="user-auth flex items-center justify-center mb-4">
+        <SignedIn>
+          <div className="flex items-center space-x-4">
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  userButtonAvatarBox: "w-[50px] h-[50px] p-4 rounded-full overflow-hidden",
+                },
+              }}
+            />
+            <SignOutButton
+              afterSignOutUrl="/"
+              className="menu-item signin-button"
+            />
+          </div>
+        </SignedIn>
+        <SignedOut>
+          <SignInButton className="menu-item signin-button" />
+        </SignedOut>
+      </div>
+
+      {/* Sidebar Menu */}
       <div className="sidebar-menu">
-        <Link to="/" className={`menu-item ${activePage === 'dashboard' ? 'active' : ''}`}>
+        <NavLink
+          to="/"
+          end
+          className={({ isActive }) =>
+            `menu-item ${isActive ? 'active' : ''}`
+          }
+        >
           <div className="menu-icon property-icon"></div>
-          <span>Property Analysis</span>
-        </Link>
-        <Link to="/properties" className={`menu-item ${activePage === 'properties' ? 'active' : ''}`}>
+          <span>Dashboard</span>
+        </NavLink>
+
+        <NavLink
+          to="/properties"
+          className={({ isActive }) =>
+            `menu-item ${isActive ? 'active' : ''}`
+          }
+        >
           <div className="menu-icon dashboard-icon"></div>
-          <span>Portfolio Dashboard</span>
-        </Link>
-        <Link to="/analytics" className={`menu-item ${activePage === 'analytics' ? 'active' : ''}`}>
+          <span>Properties</span>
+        </NavLink>
+
+        <NavLink
+          to="/analytics"
+          className={({ isActive }) =>
+            `menu-item ${isActive ? 'active' : ''}`
+          }
+        >
           <div className="menu-icon insights-icon"></div>
-          <span>Market Insights</span>
-        </Link>
-        <Link to="/reports" className={`menu-item ${activePage === 'reports' ? 'active' : ''}`}>
+          <span>Analytics</span>
+        </NavLink>
+
+        <NavLink
+          to="/reports"
+          className={({ isActive }) =>
+            `menu-item ${isActive ? 'active' : ''}`
+          }
+        >
           <div className="menu-icon history-icon"></div>
-          <span>Investment History</span>
-        </Link>
-        <Link to="/settings" className={`menu-item ${activePage === 'settings' ? 'active' : ''}`}>
-          <div className="menu-icon settings-icon"></div>
-          <span>Settings</span>
-        </Link>
-      </div>
-      
-      <div className="market-trends">
-        <h3>Market Trends</h3>
-        <div className="trend-item">
-          <div className="trend-label">Interest Rates</div>
-          <div className="trend-chart interest-chart"></div>
-        </div>
-        <div className="trend-item">
-          <div className="trend-label">Home Prices</div>
-          <div className="trend-chart prices-chart"></div>
-        </div>
-      </div>
-      
-      <div className="sidebar-footer">
-        <p>© 2025 RiskRadar</p>
+          <span>Reports</span>
+        </NavLink>
       </div>
     </div>
   );
