@@ -3,7 +3,6 @@ import React from 'react';
 const Analytics: React.FC = () => {
   return (
     <div className="dashboard-container">
-
       {/* Main Content */}
       <div className="main-content">
         <div className="page-content">
@@ -16,14 +15,14 @@ const Analytics: React.FC = () => {
             <div className="chart-container">
               <h3>Investment Distribution</h3>
               <p>Analyze how your investments are distributed across various categories.</p>
-              <div className="placeholder-chart"></div> {/* Placeholder for future charts */}
+              <img src="/src/assets/images/InvestDist.jpg" alt="Investment Distribution" className="analytics-chart" />
             </div>
 
             {/* Risk Management Section */}
             <div className="chart-container">
               <h3>Risk Management</h3>
               <p>Understand the risk levels associated with your portfolio.</p>
-              <div className="placeholder-chart"></div> {/* Placeholder for future charts */}
+              <img src="/src/assets/images/riskManage.png" alt="Risk Management" className="analytics-chart" />
             </div>
           </div>
         </div>
