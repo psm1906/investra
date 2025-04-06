@@ -1,4 +1,4 @@
-#rag_model.py
+# rag_model.py
 import os
 import requests
 import google.generativeai as genai
@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 import datetime
 import pandas as pd
-from model import predict_risk_score_from_ui
+from models.model import predict_risk_score_from_ui
 
 ############################################
 # 1. Load environment variables & configure
@@ -22,52 +22,73 @@ genai.configure(api_key=GEMINI_API_KEY)
 ############################################
 def fetch_and_summarize_nessie(user_id: str) -> str:
     """
-    Fetch user’s financial data from Capital One's Nessie sandbox API.
-    Return a short text summary describing the user’s finances:
-    - Checking/savings balances
-    - Recent big transactions
-    - Any credit line usage
+    Fetch user’s financial data from the Nessie API.
+    Return a summary describing:
+    - Customer basic info
+    - Checking/savings balances from accounts
+    - Recent transaction history for each account
     """
-    # Example endpoints (replace with your actual usage):
-    #   GET /customers/{customer_id}
-    #   GET /accounts?key=NESSIE_API_KEY
-    #   GET /accounts/{account_id}/transactions
-    # Note: user_id might map to Nessie’s internal customer_id or account_id
-
+    base_url = "http://api.nessieisreal.com"
     try:
-        # Example: fetch all accounts for the user
-        base_url = f"http://api.reimaginebanking.com"
-        resp = requests.get(
+        # Fetch customer details
+        cust_resp = requests.get(
             f"{base_url}/customers/{user_id}?key={NESSIE_API_KEY}"
         )
-        if resp.status_code != 200:
-            return "Could not fetch Nessie data."
+        if cust_resp.status_code != 200:
+            return "Could not fetch customer details from Nessie."
+        customer = cust_resp.json()
 
-        customer_json = resp.json()
-        # Suppose we want balances or last transactions:
-        # This is just pseudo-code; adapt to match the Nessie response structure:
+        # Fetch all accounts for the user
         accounts_resp = requests.get(
             f"{base_url}/customers/{user_id}/accounts?key={NESSIE_API_KEY}"
         )
+        if accounts_resp.status_code != 200:
+            return "Could not fetch Nessie accounts data."
         accounts = accounts_resp.json()
-        # Build a small text summary:
+
         total_balance = 0
+        account_details = ""
+        transaction_details = ""
+        
+        # Loop through each account to accumulate balances and fetch transactions
         for acct in accounts:
-            total_balance += acct.get("balance", 0)
+            acct_id = acct.get("id")
+            balance = acct.get("balance", 0)
+            total_balance += balance
+            acct_type = acct.get("type", "Unknown")
+            account_details += f" - {acct_type} (ID: {acct_id}) with balance ${balance:.2f}\n"
+            
+            # Fetch transactions for this account
+            trans_resp = requests.get(
+                f"{base_url}/accounts/{acct_id}/transactions?key={NESSIE_API_KEY}"
+            )
+            if trans_resp.status_code == 200:
+                transactions = trans_resp.json()
+                # Use up to the 3 most recent transactions (if available)
+                recent = transactions[-3:] if len(transactions) >= 3 else transactions
+                if recent:
+                    transaction_details += f"Account {acct_id} recent transactions:\n"
+                    for t in recent:
+                        amount = t.get("amount", "N/A")
+                        date = t.get("transaction_date", "N/A")
+                        description = t.get("description", "No description")
+                        transaction_details += f"   - ${amount} on {date}: {description}\n"
+                else:
+                    transaction_details += f"Account {acct_id} has no transactions.\n"
+            else:
+                transaction_details += f"Could not fetch transactions for account {acct_id}.\n"
 
-        # For real usage, you’d parse transactions, credit usage, etc.
+        # Build a summary string
         summary = (
-            f"This user’s total bank balance is approximately ${total_balance:.2f}. "
-            "They have the following accounts:\n"
+            f"Customer: {customer.get('first_name', '')} {customer.get('last_name', '')}\n"
+            f"Total Bank Balance: ${total_balance:.2f}\n"
+            f"Accounts:\n{account_details.strip()}\n\n"
+            f"Transaction History:\n{transaction_details.strip()}"
         )
-        for acct in accounts:
-            summary += f" - {acct.get('type')} with balance ${acct.get('balance', 0)}\n"
-
-        return summary.strip()
+        return summary
 
     except Exception as e:
         return f"Error retrieving Nessie data: {str(e)}"
-
 
 ############################################
 # 3. Minimal “retrieval” step
@@ -75,16 +96,9 @@ def fetch_and_summarize_nessie(user_id: str) -> str:
 def retrieve_docs(context_query: str) -> str:
     """
     A placeholder for a real RAG retrieval system.
-    In a production app, you’d embed your knowledge-base docs and do similarity search.
-    For now, we’ll just return some static text if we detect certain keywords.
+    Returns static background documents based on keywords.
     """
-
-    # You might store real documents like "interest_rates.txt", "credit_usage.txt", etc.
-    # For a simple example, we just do keyword-based snippets:
-    # (In a real system, you’d do embedding-based retrieval.)
-
     docs_snippets = []
-
     if "interest" in context_query.lower():
         docs_snippets.append(
             "High interest rates can reduce home affordability, impacting demand and possibly lowering property values."
@@ -97,10 +111,7 @@ def retrieve_docs(context_query: str) -> str:
         docs_snippets.append(
             "Neighborhood growth is a positive sign for property appreciation, but also can raise property taxes."
         )
-
-    # Return them as a single string or a list. For prompting, we often just inline them:
     return "\n".join(docs_snippets)
-
 
 ############################################
 # 4. Generate an LLM-based explanation that merges risk, Nessie data, & doc retrieval
@@ -108,21 +119,13 @@ def retrieve_docs(context_query: str) -> str:
 def generate_rag_analysis(property_data: str, user_finance_summary: str) -> str:
     """
     Prompts Gemini with a combination of:
-      - property_data (including risk score)
-      - user_finance_summary (from Nessie)
-      - retrieved doc snippets
-    and requests a short “Pros, Cons, and suggested improvements” style explanation.
+      - Property data (including risk score)
+      - User financial summary from Nessie
+      - Retrieved document snippets
+    Returns a concise explanation including risk, pros/cons, and suggestions.
     """
-
-    # Some attempt at a “context query” to feed retrieval:
-    # We might guess from the property data that interest rates are relevant, or we might
-    # just send the entire text. This is flexible:
     context_query = (property_data + "\n" + user_finance_summary).lower()
-
-    # Retrieve doc snippets:
     relevant_snippets = retrieve_docs(context_query)
-
-    # Build a prompt that references all these pieces:
     prompt = f"""
 You are a helpful real estate investment assistant. A user wants a property risk analysis.
 
@@ -142,7 +145,6 @@ TASK:
 
 Respond in a concise, user-friendly tone.
 """
-
     try:
         model = genai.GenerativeModel('gemini-pro')
         response = model.generate_content(prompt)
@@ -150,33 +152,28 @@ Respond in a concise, user-friendly tone.
     except Exception as e:
         return f"Error in generating analysis: {str(e)}"
 
-
 ############################################
 # 5. High-level function to get final JSON for the UI
 ############################################
 def analyze_investment_risk_api(user_id: str, user_input: dict):
     """
-    Merges property-based risk (LightGBM) and user finance data (Nessie),
+    Merges property-based risk (LightGBM) and customer financial history (Nessie),
     then calls the LLM for a combined explanation.
-
-    Returns a JSON-style dict suitable for a Flask or FastAPI response.
+    Returns a JSON-style dict for the UI.
     """
     # 1) Get numeric risk score from model
     risk_score = predict_risk_score_from_ui(user_input)
-    # property_data string for the prompt
     property_summary = (
         f"Property info: {user_input}\n"
         f"Model-predicted risk score: {risk_score:.2f} (0-100 scale)."
     )
 
-    # 2) Fetch & summarize Nessie data
+    # 2) Fetch & summarize Nessie customer history data
     user_finance_summary = fetch_and_summarize_nessie(user_id)
 
     # 3) Generate the final explanation from the LLM
     rag_explanation = generate_rag_analysis(property_summary, user_finance_summary)
 
-    # 4) Optionally parse out sub-parts of the text if you want a separate “Pros/Cons”
-    # but for simplicity, we just return the entire text.
     generated_date = datetime.datetime.now().strftime("%Y-%m-%d")
     return {
         "risk_score": risk_score,

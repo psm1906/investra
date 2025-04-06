@@ -1,6 +1,6 @@
 # backend/properties_routes.py
 from flask import Blueprint, request, jsonify
-from json_store import load_properties, save_properties
+from backend.json_store import load_properties, save_properties
 
 properties_bp = Blueprint('properties', __name__)
 

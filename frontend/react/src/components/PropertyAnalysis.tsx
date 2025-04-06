@@ -105,7 +105,7 @@ const PropertyAnalysis: React.FC = () => {
 
       console.log('Sending payload to /analyze:', payload);
 
-      const res = await fetch('/analyze', {
+      const res = await fetch('http://127.0.0.1:5001/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
