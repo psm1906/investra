@@ -1,23 +1,32 @@
+# backend/app.py
 from flask import Flask, jsonify, request
-from rag_model import analyze_investment_risk
+from properties_routes import properties_bp
+from rag_model import analyze_investment_risk_api
 
 app = Flask(__name__)
 
-# Flask route for analyzing real estate risk
+# Register the blueprint for /api/properties
+app.register_blueprint(properties_bp, url_prefix='/api')
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    data = request.get_json()  # Get the data sent in the POST request
-    
-    # Fetch property details from the incoming request
-    property_data = data.get("property", {})
-    
-    # Generate risk analysis using RAG-based model (from rag_model.py)
+    """
+    Endpoint for AI-based risk analysis using LightGBM + Gemini + Nessie data.
+    Expects JSON like:
+    {
+      "user_id": "demoUser123",
+      "property": { ...fields... }
+    }
+    """
+    payload = request.get_json()
+    user_id = payload.get("user_id", "default-user-id") 
+    user_input = payload.get("property", {})
     try:
-        risk_analysis = analyze_investment_risk(property_data)
-        return jsonify({"risk_analysis": risk_analysis})
+        result = analyze_investment_risk_api(user_id, user_input)
+        return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Run the app
 if __name__ == '__main__':
-    app.run(debug=True)
+    # For local development:
+    app.run(debug=True, port=5000)
