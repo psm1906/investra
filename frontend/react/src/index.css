@@ -712,3 +712,9 @@ select {
   font-size: 12px;
   background-color: var(--light-blue);
 }
+.analytics-chart-image {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin-top: 16px;
+}
