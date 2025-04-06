@@ -1,21 +1,41 @@
-// src/App.tsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/clerk-react';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Properties from './pages/Properties';
 import Reports from './pages/Reports';
+import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import Footer from './components/Footer';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/properties" element={<Properties />} />
-        <Route path="/reports" element={<Reports />} />
-      </Routes>
-    </Router>
+    <div className="dashboard-container">
+      <Navbar />
+      <Sidebar />
+      
+      {/* Auth controls in top-right corner */}
+      <div className="auth-controls" style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000 }}>
+        <SignedOut>
+          <SignInButton />
+        </SignedOut>
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
+      </div>
+      
+      <div className="main-content">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/properties" element={<Properties />} />
+          <Route path="/reports" element={<Reports />} />
+        </Routes>
+      </div>
+      
+      <Footer />
+    </div>
   );
 }
 

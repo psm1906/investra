@@ -8,15 +8,12 @@
   --light-blue: #e5f0f9;
   --accent-beige: #d5b795;
   --light-beige: #f2ece3;
-  
   --risk-low: #98d8a1;
   --risk-medium: #f2d279;
   --risk-high: #f2a097;
-  
   --text-dark: #4a5568;
   --text-medium: #718096;
   --text-light: #a0aec0;
-  
   --background: #f7fafc;
   --card-bg: #ffffff;
   --border: #e2e8f0;
@@ -29,25 +26,60 @@ body {
   margin: 0;
 }
 
+/* ===== Dashboard Layout Fixes ===== */
 .dashboard-container {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  position: relative;
+}
+
+.sidebar {
+  position: fixed;
+  width: 250px;
+  height: calc(100vh - 60px); /* Account for navbar height */
+  top: 60px; /* Position below navbar */
+  left: 0;
+  z-index: 10;
+  background-color: var(--light-blue);
+  padding: 24px 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .main-content {
+  margin-left: 125px;
+  padding: 24px;
+  min-height: calc(100vh - 60px);
+  background-color: var(--background);
   flex: 1;
-  margin-left: 250px;
 }
 
-/* Navbar styles */
+.page-content {
+  padding: 24px;
+  position: relative;
+  z-index: 1; /* Ensures content appears above sidebar */
+}
+
+/* Navbar should stay above sidebar */
 .navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  height: 60px;
+  background-color: var(--primary-blue);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background-color: var(--primary-blue);
-  color: white;
-  height: 60px;
+}
+
+/* Homepage-specific adjustments */
+.homepage .main-content {
+  padding-top: 60px; /* Compensate for navbar height */
 }
 
 .navbar-brand {
@@ -85,16 +117,6 @@ body {
 }
 
 /* Sidebar styles */
-.sidebar {
-  position: fixed;
-  width: 250px;
-  height: 100vh;
-  background-color: var(--light-blue);
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
-}
-
 .logo-container {
   display: flex;
   justify-content: center;
@@ -579,14 +601,6 @@ input, select {
   margin-bottom: 12px;
 }
 
-.factor-icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 8px;
-  background-color: var(--risk-medium);
-  border-radius: 50%;
-}
-
 .factor-name {
   flex: 1;
   font-size: 14px;
@@ -763,74 +777,11 @@ input, select {
   cursor: pointer;
 }
 
-/* Analytics Page Styles */
-.dashboard-container {
-  display: flex;
-  min-height: 100vh;
-}
-
-.main-content {
-  flex-grow: 1;
-  margin-left: 250px; /* Adjust based on sidebar width */
-}
-
-.page-content {
-  padding: 20px;
-}
-
-.analytics-charts {
-  display: grid;
-  gap: 2rem;
-  margin-top: 2rem;
-}
-
-.chart-container {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-/* ===== Dashboard Layout Fixes ===== */
-.dashboard-container {
-  display: flex;
-  min-height: 100vh;
-  position: relative;
-}
-
-.sidebar {
-  position: fixed;
-  width: 250px;
-  height: 100vh;
-  z-index: 10;
-  background-color: var(--light-blue);
-  padding: 24px 16px;
-  box-sizing: border-box; /* Ensures padding doesn't affect total width */
-}
-
-.main-content {
-  flex-grow: 1;
+.footer {
   margin-left: 250px;
-  background-color: var(--background);
-  min-height: 100vh;
-}
-
-.page-content {
-  padding: 24px;
-  position: relative;
-  z-index: 1; /* Ensures content appears above sidebar */
-}
-/* Navbar should stay above sidebar */
-.navbar {
-  position: relative;
-  z-index: 20;
-}
-/* Homepage-specific adjustments */
-.homepage .main-content {
-  padding-top: 60px; /* Compensate for navbar height */
-}
-
-/* Analytics page chart container fix */
-.analytics-charts {
-  margin-top: 32px;
-  gap: 24px;
+  padding: 16px;
+  text-align: center;
+  color: var(--text-light);
+  font-size: 12px;
+  background-color: var(--light-blue);
 }
