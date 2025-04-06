@@ -1,6 +1,11 @@
-// src/components/Navbar.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  SignInButton,
+} from '@clerk/clerk-react';
 
 interface NavbarProps {
   activePage?: string;
@@ -12,6 +17,7 @@ const Navbar: React.FC<NavbarProps> = ({ activePage = 'Dashboard' }) => {
       <div className="navbar-brand">
         <span className="app-title">Real Estate Investment Risk Detector</span>
       </div>
+
       <div className="navbar-menu">
         <Link to="/" className={`nav-item ${activePage === 'Dashboard' ? 'active' : ''}`}>
           Dashboard
@@ -26,8 +32,22 @@ const Navbar: React.FC<NavbarProps> = ({ activePage = 'Dashboard' }) => {
           Reports
         </Link>
       </div>
+
       <div className="navbar-user">
-        <div className="user-avatar">JD</div>
+        <SignedOut>
+          <SignInButton />
+        </SignedOut>
+
+        <SignedIn>
+          <UserButton
+            afterSignOutUrl="/"
+            appearance={{
+              elements: {
+                userButtonAvatarBox: "w-10 h-10 rounded-full overflow-hidden",
+              },
+            }}
+          />
+        </SignedIn>
       </div>
     </nav>
   );

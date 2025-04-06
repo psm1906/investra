@@ -15,16 +15,6 @@ function App() {
       <Navbar />
       <Sidebar />
       
-      {/* Auth controls in top-right corner */}
-      <div className="auth-controls" style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000 }}>
-        <SignedOut>
-          <SignInButton />
-        </SignedOut>
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
-      </div>
-      
       <div className="main-content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
