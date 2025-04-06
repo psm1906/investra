@@ -1,3 +1,4 @@
+// App.tsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/clerk-react';

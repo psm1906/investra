@@ -1,164 +1,192 @@
 import os
 import json
-import requests
+import google.generativeai as genai
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+from flask_cors import CORS
+import uuid  # For generating a unique identifier that can serve as a name
 
 load_dotenv()
-
 app = Flask(__name__)
 
-# Load Nessie API key from environment (required for all Nessie API calls)
-NESSIE_API_KEY = os.getenv("NESSIE_API_KEY")
-if not NESSIE_API_KEY:
-    raise RuntimeError("Missing Nessie API key. Set NESSIE_API_KEY as an env variable.")
+# Your existing CORS config
+CORS(
+    app,
+    resources={r"/*": {"origins": "*"}},
+    expose_headers="Content-Disposition",
+    allow_headers=["Content-Type", "Authorization", "Access-Control-Allow-Credentials", "Access-Control-Allow-Origin"],
+    supports_credentials=True
+)
 
-# Base URL for Nessie API (Nessie sandbox)
-BASE_URL = "http://api.nessieisreal.com"
+# Make sure this env var is set
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise RuntimeError("Missing Gemini API key. Set GEMINI_API_KEY as an env variable.")
 
-# Persistent store for Clerk user ID -> Nessie customer ID mapping.
-# Using a JSON file for simplicity; replace with a database if needed.
-MAPPING_FILE = "user_nessie_map.json"
+genai.configure(api_key=GEMINI_API_KEY)
+
+# Get the Gemini Pro model
+gemini_pro_model = genai.GenerativeModel('gemini-2.0-flash')
+
+MAPPING_FILE = "user_gemini_map.json"
 try:
     with open(MAPPING_FILE, "r") as f:
-        user_map = json.load(f)  # dict: {clerk_user_id: nessie_customer_id}
+        user_map = json.load(f)
 except FileNotFoundError:
     user_map = {}
 
 def save_user_map():
-    """Persist the user_map dictionary to the JSON file."""
     with open(MAPPING_FILE, "w") as f:
         json.dump(user_map, f)
 
-def create_nessie_customer():
-    """Create a new fake customer in the Nessie sandbox and return the customer ID."""
-    url = f"{BASE_URL}/customers?key={NESSIE_API_KEY}"
-    customer_payload = {
-        "first_name": "John",
-        "last_name": "Doe",
-        "address": {
-            "street_number": "123",
-            "street_name": "Main Street",
-            "city": "Sampletown",
-            "state": "CA",
-            "zip": "90401"
-        }
-    }
-    response = requests.post(url, json=customer_payload)
-    if response.status_code in (200, 201):
-        data = response.json()
-        if isinstance(data, dict):
-            if data.get("objectCreated"):
-                return data["objectCreated"].get("_id") or data["objectCreated"].get("id")
-            return data.get("_id") or data.get("id")
-    app.logger.error(f"Nessie customer creation failed: {response.status_code}, {response.text}")
-    return None
-
-def create_nessie_account(customer_id, account_type, balance=0):
-    """Create an account (Checking or Savings) for the given customer_id. Returns the account ID."""
-    url = f"{BASE_URL}/customers/{customer_id}/accounts?key={NESSIE_API_KEY}"
-    account_payload = {
-        "type": account_type,               # "Checking" or "Savings"
-        "nickname": f"{account_type} Account",
-        "rewards": 0,
-        "balance": balance
-    }
-    response = requests.post(url, json=account_payload)
-    if response.status_code in (200, 201):
-        data = response.json()
-        if data.get("objectCreated"):
-            return data["objectCreated"].get("_id") or data["objectCreated"].get("id")
-        return data.get("_id") or data.get("id")
-    app.logger.error(f"Failed to create {account_type} account: {response.status_code}, {response.text}")
-    return None
-
-def create_nessie_deposit(account_id, amount, description):
-    """Create a deposit transaction for the given account (adds funds)."""
-    url = f"{BASE_URL}/accounts/{account_id}/deposits?key={NESSIE_API_KEY}"
-    transaction_payload = {
-        "medium": "balance",
-        "amount": amount,
-        "description": description
-    }
-    response = requests.post(url, json=transaction_payload)
-    if response.status_code not in (200, 201):
-         app.logger.error(f"Failed deposit: {response.status_code}, {response.text}")
-
-def create_nessie_withdrawal(account_id, amount, description):
-    """Create a withdrawal transaction for the given account (removes funds)."""
-    url = f"{BASE_URL}/accounts/{account_id}/withdrawals?key={NESSIE_API_KEY}"
-    transaction_payload = {
-        "medium": "balance",
-        "amount": amount,
-        "description": description
-    }
-    response = requests.post(url, json=transaction_payload)
-    if response.status_code not in (200, 201):
-         app.logger.error(f"Failed withdrawal: {response.status_code}, {response.text}")
-
-def ensure_nessie_customer(clerk_user_id):
+def generate_gemini_customer(user_name: str) -> dict:
     """
-    Ensure the given Clerk user has a corresponding Nessie customer (create if not exists).
-    Returns the Nessie customer ID.
+    Generate a realistic financial profile JSON using a valid Google Generative AI model.
     """
+    prompt = f"""
+You are a creative assistant tasked with generating a realistic financial profile for a user named "{user_name}".
+Generate a valid JSON object with the following structure. Ensure the output is ONLY valid JSON and includes realistic sample data:
+
+{{
+  "first_name": "...",
+  "last_name": "...",
+  "accounts": [
+    {{
+      "account_id": "...",
+      "type": "Checking" or "Savings",
+      "nickname": "...",
+      "balance": ...,
+      "transactions": [
+        {{
+          "amount": ...,
+          "date": "YYYY-MM-DD",
+          "description": "..."
+        }},
+        {{
+          "amount": ...,
+          "date": "YYYY-MM-DD",
+          "description": "..."
+        }}
+        // ... more transactions
+      ]
+    }},
+    {{
+      "account_id": "...",
+      "type": "Checking" or "Savings",
+      "nickname": "...",
+      "balance": ...,
+      "transactions": [...]
+    }}
+    // ... more accounts
+  ]
+}}
+
+Be creative and generate realistic-looking data. Do NOT include any markdown formatting like ```json around the JSON output.
+"""
+
+    try:
+        response = gemini_pro_model.generate_content(prompt)
+
+        if response.prompt_feedback and response.prompt_feedback.block_reason:
+            app.logger.error(f"Gemini Pro blocked the prompt for user '{user_name}': {response.prompt_feedback.block_reason}")
+            return None
+        elif response.candidates and not response.candidates[0].content.parts:
+            app.logger.error(f"Gemini Pro returned an empty response for user '{user_name}'.")
+            return None
+
+        generated_text = response.candidates[0].content.parts[0].text
+
+        # Remove markdown code block if present
+        if generated_text.startswith("```json") and generated_text.endswith("```"):
+            generated_text = generated_text[7:-3].strip()
+        elif generated_text.startswith("```") and generated_text.endswith("```"):
+            generated_text = generated_text[3:-3].strip()
+
+        try:
+            customer_data = json.loads(generated_text)
+            return customer_data
+        except json.JSONDecodeError as e:
+            app.logger.error(f"Failed to parse generated JSON for user '{user_name}': {e}, Response text: '{generated_text}'")
+            return None
+
+    except Exception as e:
+        app.logger.error(f"Error generating customer data for user '{user_name}': {e}")
+        return None
+
+def ensure_customer_data(clerk_user_id: str, user_name: str) -> dict:
     if clerk_user_id in user_map:
         return user_map[clerk_user_id]
-    cust_id = create_nessie_customer()
-    if not cust_id:
+
+    # Generate new if not present
+    customer_data = generate_gemini_customer(user_name)
+    if customer_data:
+        user_map[clerk_user_id] = customer_data
+        save_user_map()
+        return customer_data
+    else:
         return None
-    # Create Checking and Savings accounts for the new customer
-    checking_acct = create_nessie_account(cust_id, "Checking", balance=5000)
-    savings_acct  = create_nessie_account(cust_id, "Savings",  balance=10000)
-    # Generate a few fake transactions for demo purposes
-    if checking_acct:
-        create_nessie_deposit(checking_acct, 1000, "Initial deposit")
-        create_nessie_withdrawal(checking_acct, 200, "Grocery Shopping")
-        create_nessie_withdrawal(checking_acct, 150, "Utility Bill")
-    if savings_acct:
-        create_nessie_deposit(savings_acct, 500, "Initial deposit")
-        create_nessie_deposit(savings_acct, 50,  "Monthly Interest")
-    user_map[clerk_user_id] = cust_id
-    save_user_map()
-    return cust_id
 
 @app.route('/user_init', methods=['POST'])
 def user_init():
-    """
-    Endpoint to initialize user data after login.
-    Expects JSON with {"user_id": <Clerk user ID>}.
-    Creates Nessie customer/accounts if not already done.
-    """
     data = request.get_json()
+    if not data:
+        return jsonify({"error": "No JSON body provided"}), 400
+
     clerk_user_id = data.get("user_id")
+    user_name = data.get("user_name")
     if not clerk_user_id:
         return jsonify({"error": "Missing user_id"}), 400
-    nessie_id = ensure_nessie_customer(clerk_user_id)
-    if not nessie_id:
-        return jsonify({"error": "Failed to initialize Nessie data"}), 500
-    return jsonify({"message": "Nessie customer ready", "customer_id": nessie_id})
+
+    if not user_name:
+        # Generate a unique identifier to use as a placeholder name
+        user_name = f"User_{uuid.uuid4().hex[:8]}"
+        app.logger.info(f"Generated user name for {clerk_user_id}: {user_name}")
+
+    customer_profile = ensure_customer_data(clerk_user_id, user_name)
+    if not customer_profile:
+        return jsonify({"error": "Failed to generate customer profile"}), 500
+
+    return jsonify({
+        "message": "Customer profile generated",
+        "customer_profile": customer_profile
+    })
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
     """
-    Analysis endpoint that uses the user's Nessie data.
-    Expects JSON with {"user_id": <Clerk user ID>, ...}.
+    Similar approach, we do property risk analysis
     """
-    data = request.get_json()
-    clerk_user_id = data.get("user_id")
-    if not clerk_user_id:
-        return jsonify({"error": "Missing user_id"}), 400
-    # Lookup Nessie customer ID (create if necessary)
-    nessie_id = user_map.get(clerk_user_id)
-    if not nessie_id:
-        nessie_id = ensure_nessie_customer(clerk_user_id)
-        if not nessie_id:
-            return jsonify({"error": "No Nessie data for user"}), 500
-    # Example analysis: retrieve the user's accounts from Nessie
-    acct_url = f"{BASE_URL}/customers/{nessie_id}/accounts?key={NESSIE_API_KEY}"
-    accounts_resp = requests.get(acct_url)
-    accounts = accounts_resp.json() if accounts_resp.status_code == 200 else {}
-    result = {"accounts": accounts}
-    return jsonify({"customer_id": nessie_id, "analysis_result": result})
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No JSON body provided"}), 400
+
+        clerk_user_id = data.get("user_id")
+        property_details = data.get("property")
+        if not clerk_user_id:
+            return jsonify({"error": "Missing user_id"}), 400
+        if not property_details:
+            return jsonify({"error": "Missing property details"}), 400
+
+        # If no profile, generate (we might want to fetch existing here instead)
+        if clerk_user_id not in user_map:
+            # Generate a unique identifier if no user_name is provided
+            user_name_for_new = data.get("user_name", f"User_{uuid.uuid4().hex[:8]}")
+            customer_profile = generate_gemini_customer(user_name_for_new)
+            if customer_profile:
+                user_map[clerk_user_id] = customer_profile
+                save_user_map()
+            else:
+                return jsonify({"error": "Failed to generate customer profile for analysis"}), 500
+
+        from backend.rag_model import analyze_investment_risk_api  # Import the correct function
+        analysis_result = analyze_investment_risk_api(clerk_user_id, property_details)
+        return jsonify(analysis_result)
+
+    except Exception as e:
+        app.logger.error("Error in /analyze endpoint: %s", e)
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 if __name__ == '__main__':
+    # Start on port 5001
     app.run(debug=True, port=5001)

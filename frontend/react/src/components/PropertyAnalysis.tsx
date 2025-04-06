@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import RiskMeter from './RiskMeter';
 import RiskFactors from './RiskFactors';
 
-/** 
- * Map from UI dropdown to the strings the model expects in `predict_risk_score_from_ui()`.
- */
+// Import the AiRecommendation component
+import AiRecommendation from './AiRecommendation'; 
+
 const propertyTypeMap: Record<string, string> = {
   'Single-Family Home': 'SingleFamily',
   Condo: 'Condo',
   Townhouse: 'Townhouse',
-  'Multi-Family': 'MultiFamily', // model doesn't have MultiFamily specifically, but we'll pass "MultiFamily"
+  'Multi-Family': 'MultiFamily',
 };
 
 const conditionMap: Record<string, string> = {
@@ -21,17 +22,18 @@ const conditionMap: Record<string, string> = {
 
 interface PropertyDetails {
   location: string;
-  propertyType: string; // e.g. "Single-Family Home"
+  propertyType: string;
   price: number;
   squareFootage: number;
   bedrooms: number;
   bathrooms: number;
   yearBuilt: number;
-  condition: string;    // e.g. "Good"
+  condition: string;
 }
 
 const PropertyAnalysis: React.FC = () => {
-  // Initial form state
+  const { user, isLoaded, isSignedIn } = useUser();
+
   const [propertyDetails, setPropertyDetails] = useState<PropertyDetails>({
     location: '123 Main St, Austin, TX 78701',
     propertyType: 'Single-Family Home',
@@ -43,63 +45,60 @@ const PropertyAnalysis: React.FC = () => {
     condition: 'Good',
   });
 
-  // After the backend call, store the returned data:
   const [riskScore, setRiskScore] = useState<number | null>(null);
   const [aiRecommendation, setAiRecommendation] = useState<string>('');
   const [riskFactors, setRiskFactors] = useState<{ name: string; score: number }[]>([]);
 
+  useEffect(() => {
+    if (isLoaded && isSignedIn && user) {
+      const initializeUser = async () => {
+        try {
+          const res = await fetch('http://localhost:5001/user_init', {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: user.id }),
+          });
+          const data = await res.json();
+          console.log('User init response:', data);
+        } catch (err) {
+          console.error('Failed to initialize user:', err);
+        }
+      };
+      initializeUser();
+    }
+  }, [isLoaded, isSignedIn, user]);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
     setPropertyDetails((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === 'number' ? Number(value) : value,
     }));
   };
 
-  // Call the backend to analyze risk
   const analyzeRisk = async () => {
+    if (!isLoaded || !isSignedIn || !user) {
+      alert('User data not available. Please sign in.');
+      return;
+    }
     try {
-      // Suppose we track the user ID in your app; hardcode or get from context/auth:
-      const userId = 'demoUser123';
-
-      // Construct the payload: map UI fields -> what the model expects
       const mappedPropertyType = propertyTypeMap[propertyDetails.propertyType] || 'SingleFamily';
       const mappedCondition = conditionMap[propertyDetails.condition] || 'Good';
 
       const payload = {
-        user_id: userId,
+        user_id: user.id,
         property: {
-          // The model expects "YrSold" (year sold) - you can pick 2023 or any year
           YrSold: 2023,
-
-          // The model expects "SqFt" -> "GrLivArea"
           SqFt: propertyDetails.squareFootage,
-
-          // The model expects "Bedrooms" -> "BedroomAbvGr"
           Bedrooms: propertyDetails.bedrooms,
-
-          // The model expects "Bathrooms" -> "FullBath"
           Bathrooms: propertyDetails.bathrooms,
-
-          // The model expects "YearBuilt"
           YearBuilt: propertyDetails.yearBuilt,
-
-          // The model expects "Condition" to be one of "Excellent","Good","Fair","Poor"
           Condition: mappedCondition,
-
-          // The model expects "PropertyType" -> "SingleFamily","Townhouse","Condo", etc.
           PropertyType: mappedPropertyType,
-
-          // The model also references "Neighborhood", default is "NAmes"
           Neighborhood: 'NAmes',
-
-          // If you'd like to pass MortgageRate, etc., you could do:
-          // MortgageRate: 6.5,
-
-          // Price is not used by the model, but we keep it for UI consistency:
-          // Price: propertyDetails.price,
         },
       };
 
@@ -107,6 +106,7 @@ const PropertyAnalysis: React.FC = () => {
 
       const res = await fetch('http://127.0.0.1:5001/analyze', {
         method: 'POST',
+        mode: 'cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
@@ -118,17 +118,9 @@ const PropertyAnalysis: React.FC = () => {
       const data = await res.json();
       console.log('Response from /analyze:', data);
 
-      // The backend returns e.g.:
-      // {
-      //   risk_score: 78.23,
-      //   ai_recommendation: "LLM text...",
-      //   property_data: {...},
-      //   user_finance_summary: "...",
-      //   generated_date: "2025-04-06"
-      // }
       setRiskScore(data.risk_score ?? null);
       setAiRecommendation(data.ai_recommendation ?? '');
-      setRiskFactors([]); // Or parse data.risk_factors if provided
+      setRiskFactors([]); // Optionally parse additional risk factors if available.
     } catch (err) {
       console.error('Error analyzing risk:', err);
       alert('Failed to analyze risk. Check console for details.');
@@ -148,7 +140,6 @@ const PropertyAnalysis: React.FC = () => {
             <h3>Property Details</h3>
           </div>
           
-          {/* Location */}
           <div className="form-group">
             <label>Location</label>
             <div className="location-input">
@@ -164,7 +155,6 @@ const PropertyAnalysis: React.FC = () => {
             </div>
           </div>
           
-          {/* Property Image Upload (Placeholder) */}
           <div className="property-image-section">
             <div className="image-placeholder">
               <div className="house-image"></div>
@@ -175,7 +165,6 @@ const PropertyAnalysis: React.FC = () => {
             </div>
           </div>
           
-          {/* Property Type & SqFt */}
           <div className="form-row">
             <div className="form-group half">
               <label>Property Type</label>
@@ -201,7 +190,6 @@ const PropertyAnalysis: React.FC = () => {
             </div>
           </div>
           
-          {/* Price & Year Built */}
           <div className="form-row">
             <div className="form-group half">
               <label>Price / Market Value</label>
@@ -226,7 +214,6 @@ const PropertyAnalysis: React.FC = () => {
             </div>
           </div>
           
-          {/* Bedrooms & Bathrooms & Condition */}
           <div className="form-row">
             <div className="form-group half">
               <label>Bedrooms &amp; Bathrooms</label>
@@ -279,22 +266,20 @@ const PropertyAnalysis: React.FC = () => {
         {/* Right Panel: Risk Analysis Results */}
         <div className="risk-analysis-section">
           <h3>Risk Analysis</h3>
-          
-          {/* If riskScore is null, user hasn’t run analysis yet or no result */}
           {riskScore !== null ? (
             <RiskMeter score={riskScore} />
           ) : (
             <p>Risk score not yet available. Click "Analyze Risk" above.</p>
           )}
-
           <RiskFactors factors={riskFactors} />
 
           <div className="ai-recommendation">
-            <h4>AI Recommendation</h4>
+            <h4>Comprehensive AI Analysis (Pros &amp; Cons)</h4>
             {aiRecommendation ? (
-              <p>{aiRecommendation}</p>
+              // Render the AiRecommendation component instead of raw text
+              <AiRecommendation content={aiRecommendation} />
             ) : (
-              <p>No AI recommendation yet.</p>
+              <p>No AI analysis yet.</p>
             )}
           </div>
         </div>
