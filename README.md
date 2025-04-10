@@ -104,4 +104,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Acknowledgments
 - WEHack 2025 for the platform
 - Capital One for the challenge
+- CBRE for providing the real estate investment challenge and data
 - All contributors and supporters of the project
